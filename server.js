@@ -45,8 +45,6 @@ app.get('/shopify/:type', async (req, res) => {
 app.get('/shopify/collections/:collectionId', async (req, res) => {
   const collectionId = req.params.collectionId;
   try {
-    // Your logic to fetch data from Shopify using the collectionId
-    // For example, using the shopifyAxios instance:
     const response = await shopifyAxios.get(`/admin/api/2024-01/custom_collections/${collectionId}.json`);
     res.json(response.data);
   } catch (error) {
@@ -55,20 +53,27 @@ app.get('/shopify/collections/:collectionId', async (req, res) => {
   }
 });
 
-
 app.get('/shopify/collections/:collectionId/products', async (req, res) => {
-  console.log("Collection Products Route Hit");
   const collectionId = req.params.collectionId;
-  const endpoint = `/admin/api/2024-01/custom_collections/${collectionId}/products.json`;
-
   try {
-    const response = await shopifyAxios.get(endpoint);
-    res.json(response.data);
+    // Fetch collects for the collection
+    const collectsResponse = await shopifyAxios.get(`/admin/api/2024-01/collects.json?collection_id=${collectionId}&fields=id,product_id`);
+    const productIds = collectsResponse.data.collects.map(collect => collect.product_id);
+
+    // Fetch details for each product
+    const productDetailsPromises = productIds.map(productId =>
+      shopifyAxios.get(`/admin/api/2024-01/products/${productId}.json`)
+    );
+    const productsResponses = await Promise.all(productDetailsPromises);
+    const products = productsResponses.map(response => response.data.product);
+
+    res.json({ products });
   } catch (error) {
-    console.error('Error fetching products from collection:', error.response || error);
+    console.error('Error fetching products from collection:', error);
     res.status(500).send('Error fetching products from collection');
   }
 });
+
 
 
 app.listen(port, () => {
