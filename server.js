@@ -1,8 +1,14 @@
 require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
+const cors = require('cors');
 const app = express();
-const port = 3000;
+const port = 3001;
+
+// allow requests from the frontend server during development
+app.use(cors({
+  origin: 'http://localhost:3000' // frontend URL
+}));
 
 // Configure Axios for Shopify API
 const shopifyAxios = axios.create({
@@ -16,7 +22,7 @@ const shopifyAxios = axios.create({
 function getShopifyEndpoint(type) {
   const endpoints = {
     'products': '/admin/api/2024-01/products.json',
-    'collections': '/admin/api/2024-01/custom_collections.json',
+    'collections': '/admin/api/2024-01/smart_collections.json',
   };
 
   return endpoints[type] || null;
