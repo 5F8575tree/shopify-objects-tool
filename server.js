@@ -47,7 +47,6 @@ app.get('/shopify/:type', async (req, res) => {
   }
 });
 
-// not-yet-working connections
 app.get('/shopify/collections/:collectionId', async (req, res) => {
   const collectionId = req.params.collectionId;
   try {
