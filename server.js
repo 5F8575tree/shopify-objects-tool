@@ -72,6 +72,7 @@ app.get('/shopify/collections/:collectionId/products', async (req, res) => {
     const productsResponses = await Promise.all(productDetailsPromises);
     const products = productsResponses.map(response => response.data.product);
 
+
     res.json({ products });
   } catch (error) {
     console.error('Error fetching products from collection:', error);
