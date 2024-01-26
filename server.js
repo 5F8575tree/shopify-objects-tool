@@ -30,7 +30,7 @@ function getShopifyEndpoint(type) {
 
 // Route to fetch data dynamically
 app.get('/shopify/:type', async (req, res) => {
-  console.log("Requested type:", req.params.type); // Log the requested type
+  console.log("Requested type:", req.params.type);
   const endpoint = getShopifyEndpoint(req.params.type);
   console.log("Endpoint:", endpoint);
 
@@ -50,7 +50,7 @@ app.get('/shopify/:type', async (req, res) => {
 app.get('/shopify/collections/:collectionId', async (req, res) => {
   const collectionId = req.params.collectionId;
   try {
-    const response = await shopifyAxios.get(`/admin/api/2024-01/custom_collections/${collectionId}.json`);
+    const response = await shopifyAxios.get(`/admin/api/2024-01/collections/${collectionId}.json`);
     res.json(response.data);
   } catch (error) {
     console.error('Error fetching collection data:', error);
@@ -61,22 +61,11 @@ app.get('/shopify/collections/:collectionId', async (req, res) => {
 app.get('/shopify/collections/:collectionId/products', async (req, res) => {
   const collectionId = req.params.collectionId;
   try {
-    // Fetch collects for the collection
-    const collectsResponse = await shopifyAxios.get(`/admin/api/2024-01/collects.json?collection_id=${collectionId}&fields=id,product_id`);
-    const productIds = collectsResponse.data.collects.map(collect => collect.product_id);
-
-    // Fetch details for each product
-    const productDetailsPromises = productIds.map(productId =>
-      shopifyAxios.get(`/admin/api/2024-01/products/${productId}.json`)
-    );
-    const productsResponses = await Promise.all(productDetailsPromises);
-    const products = productsResponses.map(response => response.data.product);
-
-
-    res.json({ products });
+    const response = await shopifyAxios.get(`/admin/api/2024-01/collections/${collectionId}/products.json`);
+    res.json(response.data);
   } catch (error) {
-    console.error('Error fetching products from collection:', error);
-    res.status(500).send('Error fetching products from collection');
+    console.error(`Error fetching products for collection ${collectionId}:`, error);
+    res.status(500).send(`Error fetching products for collection ${collectionId}`);
   }
 });
 
