@@ -28,3 +28,30 @@ exports.fetchStorefrontProducts = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+exports.fetchStorefrontCollections = async (req, res) => {
+  try {
+    const response = await storefrontAxios.post('', {
+      query: `
+        {
+          collections(first: 10) {
+            edges {
+              node {
+                id
+                title
+                handle
+                description
+              }
+            }
+          }
+        }
+      `,
+    });
+
+    const collections = response.data.data.collections.edges.map(edge => edge.node);
+    res.json(collections);
+  } catch (error) {
+    console.error('Error fetching collections:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
