@@ -7,13 +7,17 @@ exports.fetchStorefrontProducts = async (req, res) => {
     const response = await storefrontAxios.post('', {
       query: `
         {
-          products(first: 10) {
+          products(first: 5) {
             edges {
               node {
-                id
-                title
-                handle
                 description
+                handle
+                id
+                productType
+                title
+                featuredImage {
+                  src
+                }
               }
             }
           }
@@ -21,7 +25,13 @@ exports.fetchStorefrontProducts = async (req, res) => {
       `,
     });
 
-    const products = response.data.data.products.edges.map(edge => edge.node);
+    const products = response.data.data.products.edges.map(edge => ({
+      ...edge.node,
+      id: edge.node.id.split('/').pop(),
+      // Directly accessing the src from featuredImage
+      image: edge.node.featuredImage ? edge.node.featuredImage.src : null,
+    }));
+
     res.json(products);
   } catch (error) {
     console.error('Error fetching products:', error);
