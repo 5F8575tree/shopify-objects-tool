@@ -40,7 +40,15 @@ exports.fetchStorefrontCollections = async (req, res) => {
                 id
                 title
                 handle
-                description
+                products(first: 10) {
+                  edges {
+                    node {
+                      id
+                      title
+                      handle
+                    }
+                  }
+                }
               }
             }
           }
@@ -48,7 +56,14 @@ exports.fetchStorefrontCollections = async (req, res) => {
       `,
     });
 
-    const collections = response.data.data.collections.edges.map(edge => edge.node);
+  const collections = response.data.data.collections.edges.map(edge => ({
+    ...edge.node,
+    id: edge.node.id.split('/').pop(),
+    products: edge.node.products.edges.map(productEdge => ({
+      ...productEdge.node,
+      id: productEdge.node.id.split('/').pop(),
+    })),
+  }));
     res.json(collections);
   } catch (error) {
     console.error('Error fetching collections:', error);
@@ -95,5 +110,43 @@ exports.performIntrospection = async (req, res) => {
   } catch (error) {
     console.error('Error performing introspection:', error);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+exports.fetchShop = async (req, res) => {
+  try {
+    const response = await storefrontAxios.post('', {
+      query: `
+        {
+          shop {
+            moneyFormat
+            description
+            id
+            name
+            shipsToCountries
+            paymentSettings {
+              acceptedCardBrands
+              cardVaultUrl
+              countryCode
+              currencyCode
+              enabledPresentmentCurrencies
+              shopifyPaymentsAccountId
+              supportedDigitalWallets
+            }
+          }
+        }
+      `,
+    });
+
+    if (!response.data || !response.data.data || !response.data.data.shop) {
+      console.error('Unexpected response structure:', response.data);
+      return res.status(500).json({ error: 'Unexpected response structure' });
+    }
+
+    const shop = response.data.data.shop;
+    res.json(shop);
+  } catch (error) {
+    console.error('Error fetching shop in the storefront controller:', error);
+    res.status(500).json({ error: 'Internal Server Error in Storefront Controller' });
   }
 };
