@@ -126,11 +126,7 @@ exports.fetchShop = async (req, res) => {
             shipsToCountries
             paymentSettings {
               acceptedCardBrands
-              cardVaultUrl
-              countryCode
               currencyCode
-              enabledPresentmentCurrencies
-              shopifyPaymentsAccountId
               supportedDigitalWallets
             }
           }
@@ -143,7 +139,17 @@ exports.fetchShop = async (req, res) => {
       return res.status(500).json({ error: 'Unexpected response structure' });
     }
 
-    const shop = response.data.data.shop;
+    // Destructure the shop object to extract the id and the rest of the shop fields
+    const { id, ...rest } = response.data.data.shop;
+
+    // Transform the id by splitting it and taking the last part
+    const transformedId = id.split('/').pop();
+
+    // Reconstruct the shop object with the transformed id
+    const shop = {
+      id: transformedId,
+      ...rest
+    };
     res.json(shop);
   } catch (error) {
     console.error('Error fetching shop in the storefront controller:', error);
